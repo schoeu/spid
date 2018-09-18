@@ -75,8 +75,9 @@ def gethtml(urls):
 
 def dlvlist():
     base = config['vdist']
-    cursor = db.select('SELECT title, v_type, v_url FROM v_list WHERE dl_state = 0 limit 0, 10')
+    cursor = db.select('SELECT title, v_type, v_url FROM v_list WHERE dl_state = 0')
     rs = cursor.fetchall()
+    print(rs)
     for i in rs:
         p = os.path.join(getcwd(), base, i[1])
         mkdirs(p)
@@ -86,7 +87,6 @@ def updatevinfo(p, title):
     baseurl = 'update spider_data.v_list set hash = %s, dl_state= 1 where title = %s'
     hash = getfilemd5(p)
     db.execute(baseurl, (hash, title))
-    print((hash, title), 'done.')
 
 def dlmovie(url, base, title=''):
     strarr = url.split('?')
@@ -99,4 +99,5 @@ def dlmovie(url, base, title=''):
         install_opener(opener)
         urlretrieve(url, local)
         # update to db.
-        updatevinfo(p, title)
+        updatevinfo(local, title)
+        print(local, 'done.')
