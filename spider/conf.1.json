@@ -1,0 +1,12 @@
+{
+    "db": {
+        "host": "118.110.110.110",
+        "user": "root",
+        "password": "xxx",
+        "dbname": "xxx_data"
+    },
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
+    "cookie": "xxx",
+    "categoriesurl": "https://www.xxx.com/xxx/",
+    "typeurl": "xxx"
+}
