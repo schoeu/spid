@@ -2,15 +2,16 @@ import os
 from urllib.request import build_opener, install_opener, urlretrieve
 import json
 import hashlib
+import urllib.request
+import gzip
+import io
+import socket
+import db
+import conf
 
-'''
-Utils for pspider.
-'''
 
-def getconfig():
-    return getjsondata('./conf.json')
 
-config = getconfig()
+config = conf.getconfig()
 
 def mkdirs(path):
     path = path.strip()
@@ -44,23 +45,8 @@ def savejson(path, data):
 
 def getjsondata(path):
     f = open(path)
-    b = os.path.join(getcwd(), 'movies')
-    # encoding='ISO-8859-1'
     data = json.loads(f.read())
     return data
-
-def dlvlist():
-    f = open('./movieinfo.js')
-    b = os.path.join(getcwd(), 'movies')
-    data = json.loads(f.read())
-    for i in data:
-        burl = os.path.join(b, i['type'])
-        mkdirs(burl)
-        for j in i['subs']:
-            print(j['vurl'])
-            if j['vurl']:
-                print('vurl~~', j['vurl'])
-                dlmovie(j['vurl'], burl, j['title'])
 
 def getfilemd5(file):
     md5_value = hashlib.md5()
@@ -72,3 +58,47 @@ def getfilemd5(file):
             #update md5
             md5_value.update(data)
     return md5_value.hexdigest()
+
+
+headers = {
+    'User-Agent': config['ua'],
+    'accept-encoding': 'gzip',
+    'cookie': config['cookie']
+}
+
+timeout = 2
+socket.setdefaulttimeout(timeout)
+
+def gethtml(urls):
+    rs = ''
+    try:
+        response = urllib.request.Request(urls, headers = headers)
+        html = urllib.request.urlopen(response, timeout=10.0)
+        encoding = html.info().get('Content-Encoding')
+        if html.getcode() == 200:
+            if encoding == 'gzip':
+                buf = io.BytesIO(html.read())
+                gf = gzip.GzipFile(fileobj=buf)
+                content = gf.read()
+
+        if content:
+            rs = content.decode('utf-8')
+        
+    except:
+        print('Url error')
+    return rs
+
+def dlvlist():
+    cursor = db.select('SELECT title, v_type, v_url FROM v_list WHERE dl_state = 0 limit 0, 10')
+    rs = cursor.fetchall()
+    print(rs)
+    # b = os.path.join(getcwd(), 'movies')
+    # data = json.loads(f.read())
+    # for i in data:
+    #     burl = os.path.join(b, i['type'])
+    #     mkdirs(burl)
+    #     for j in i['subs']:
+    #         print(j['vurl'])
+    #         if j['vurl']:
+    #             print('vurl~~', j['vurl'])
+    #             dlmovie(j['vurl'], burl, j['title'])

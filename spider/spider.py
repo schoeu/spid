@@ -4,10 +4,10 @@ import json
 import time
 from bs4 import BeautifulSoup
 import utils
-import getpagedata
 import db
+import conf
 
-config = utils.getconfig()
+config = conf.getconfig()
 
 alljsonpath = './infolist/all.json'
 
@@ -21,9 +21,6 @@ def getleavesinfo(str):
     lsoup = BeautifulSoup(str, "lxml")
     llistitem = [i.get_text() for i in lsoup.select('script') if not i.has_attr('src')]
     s = ''.join(llistitem)
-    # f = open('./tmp1.txt', 'w')
-    # f.write(str)
-    # f.close()
     # v url
     if s:
         reg = re.compile(r"video_url: '(.*?)'", re.M)
@@ -37,7 +34,7 @@ def getleavesinfo(str):
         return vurl
 
 def gettypehash(url):
-    rs = getpagedata.gethtml(url)
+    rs = utils.gethtml(url)
     soup = BeautifulSoup(rs, "lxml")
     # parse main page info
     listitems = soup.select('#list_categories_categories_list_items > a')
@@ -65,7 +62,7 @@ def savesubinfo():
         if purl:
             while True:
                 tpurl = purl.replace('pagenum', str(pagenum))
-                subrs = getpagedata.gethtml(tpurl)
+                subrs = utils.gethtml(tpurl)
                 slists = getsubinfo(subrs)
                 if len(slists) == 0:
                     break
@@ -86,7 +83,7 @@ def getleavelsinfo():
             data = utils.getjsondata(p)
             for item in data:
                 if item['url']:
-                    levlestr = getpagedata.gethtml(item['url'])
+                    levlestr = utils.gethtml(item['url'])
                     vurl = getleavesinfo(levlestr)
                     print(item['title'], vurl)
                     if vurl:
@@ -150,7 +147,7 @@ def main():
     # step 5
     #ts = utils.getfilemd5('../videos/5.mp4')
     #updatevinfo()
-
+    utils.dlvlist()
     # finally
     db.closeconn()
 
