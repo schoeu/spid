@@ -91,19 +91,6 @@ def getleavelsinfo():
             utils.savejson(os.path.join(lpath, lists[i]), data)
             print(os.path.join(lpath, lists[i]), ' done.')
 
-def updatevinfo():
-    vpath = '../../pspider/movies'
-    baseurl = 'update spider_data.v_list set hash = %s, dl_state= 1 where title = %s'
-    lists = os.listdir(path = vpath)
-    for i in lists:
-        p = os.path.join(vpath, i)
-        vl = os.listdir(path = p)
-        for item in vl:
-            title = os.path.splitext(item)[0]
-            hash = utils.getfilemd5(os.path.join(p, item))
-            db.execute(baseurl, (hash, title))
-            print((hash, title))
-            
 
 def savedata():
     basesql = 'insert into spider_data.v_list (title, url, v_url,v_type, v_source) values (%s, %s, %s, %s, %s)'

@@ -9,8 +9,6 @@ import socket
 import db
 import conf
 
-
-
 config = conf.getconfig()
 
 def mkdirs(path):
@@ -25,19 +23,6 @@ def mkdirs(path):
 
 def getcwd():
     return os.getcwd()
-
-def dlmovie(url, base, title=''):
-    strarr = url.split('?')
-    if url:
-        path = os.path.basename(strarr[0][:-1])
-        extension = os.path.splitext(path)[1]
-        local = os.path.join(base, title + extension)
-        print('local~~', local)
-        opener=build_opener()
-        opener.addheaders=[('User-Agent', config['ua'])]
-        install_opener(opener)
-        urlretrieve(url, local)
-        print(title + ' done.')
 
 def savejson(path, data):
     with open(path, 'w') as jsonfile:
@@ -89,16 +74,29 @@ def gethtml(urls):
     return rs
 
 def dlvlist():
+    base = config['vdist']
     cursor = db.select('SELECT title, v_type, v_url FROM v_list WHERE dl_state = 0 limit 0, 10')
     rs = cursor.fetchall()
-    print(rs)
-    # b = os.path.join(getcwd(), 'movies')
-    # data = json.loads(f.read())
-    # for i in data:
-    #     burl = os.path.join(b, i['type'])
-    #     mkdirs(burl)
-    #     for j in i['subs']:
-    #         print(j['vurl'])
-    #         if j['vurl']:
-    #             print('vurl~~', j['vurl'])
-    #             dlmovie(j['vurl'], burl, j['title'])
+    for i in rs:
+        p = os.path.join(getcwd(), base, i[1])
+        mkdirs(p)
+        dlmovie(i[2], p, i[0])
+
+def updatevinfo(p, title):
+    baseurl = 'update spider_data.v_list set hash = %s, dl_state= 1 where title = %s'
+    hash = getfilemd5(p)
+    db.execute(baseurl, (hash, title))
+    print((hash, title), 'done.')
+
+def dlmovie(url, base, title=''):
+    strarr = url.split('?')
+    if url:
+        path = os.path.basename(strarr[0][:-1])
+        extension = os.path.splitext(path)[1]
+        local = os.path.join(base, title + extension)
+        opener=build_opener()
+        opener.addheaders=[('User-Agent', config['ua'])]
+        install_opener(opener)
+        urlretrieve(url, local)
+        # update to db.
+        updatevinfo(p, title)
