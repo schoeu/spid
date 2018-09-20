@@ -1,5 +1,4 @@
 import os
-from urllib.request import build_opener, install_opener, urlretrieve
 import json
 import hashlib
 import urllib.request
@@ -8,6 +7,7 @@ import io
 import socket
 import db
 import conf
+import requests
 
 config = conf.getconfig()
 
@@ -51,14 +51,14 @@ headers = {
     'cookie': config['cookie']
 }
 
-timeout = 2
-socket.setdefaulttimeout(timeout)
+# timeout = 2
+# socket.setdefaulttimeout(timeout)
 
 def gethtml(urls):
     rs = ''
     try:
         response = urllib.request.Request(urls, headers = headers)
-        html = urllib.request.urlopen(response, timeout=10.0)
+        html = urllib.request.urlopen(response, timeout=100.0)
         encoding = html.info().get('Content-Encoding')
         if html.getcode() == 200:
             if encoding == 'gzip':
@@ -75,9 +75,8 @@ def gethtml(urls):
 
 def dlvlist():
     base = config['vdist']
-    cursor = db.select('SELECT title, v_type, v_url FROM v_list WHERE dl_state = 0')
+    cursor = db.select('SELECT title, v_type, v_url FROM v_list WHERE dl_state = 0 order by rand() limit 0, 1000')
     rs = cursor.fetchall()
-    print(rs)
     for i in rs:
         p = os.path.join(getcwd(), base, i[1])
         mkdirs(p)
@@ -94,10 +93,15 @@ def dlmovie(url, base, title=''):
         path = os.path.basename(strarr[0][:-1])
         extension = os.path.splitext(path)[1]
         local = os.path.join(base, title + extension)
-        opener=build_opener()
-        opener.addheaders=[('User-Agent', config['ua'])]
-        install_opener(opener)
-        urlretrieve(url, local)
+        dl(url, local)
         # update to db.
         updatevinfo(local, title)
         print(local, 'done.')
+
+def dl(url, path):
+    req = requests.get(url, headers=headers, stream=True)
+    chunk_size = 1024 
+    content_size = int(req.headers['content-length'])
+    with open(path, "wb") as file:
+        for data in req.iter_content(chunk_size=chunk_size):
+            file.write(data)
