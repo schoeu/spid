@@ -106,3 +106,4 @@ bin/
 include/
 .Python
 movies
+.DS_Store

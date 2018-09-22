@@ -8,6 +8,7 @@ import socket
 import db
 import conf
 import requests
+import downl
 
 config = conf.getconfig()
 
@@ -15,7 +16,6 @@ def mkdirs(path):
     path = path.strip()
     isExists = os.path.exists(path)
     if isExists:
-        print(path + 'is exist.')
         return False
     else:
         os.makedirs(path)
@@ -75,9 +75,9 @@ def gethtml(urls):
 
 def dlvlist():
     base = config['vdist']
-    cursor = db.select('SELECT title, v_type, v_url FROM v_list WHERE dl_state = 0 order by rand() limit 0, 1000')
-    rs = cursor.fetchall()
-    for i in rs:
+    rs = getundownlist()
+    i = rs[0]
+    if i:
         p = os.path.join(getcwd(), base, i[1])
         mkdirs(p)
         dlmovie(i[2], p, i[0])
@@ -94,9 +94,16 @@ def dlmovie(url, base, title=''):
         extension = os.path.splitext(path)[1]
         local = os.path.join(base, title + extension)
         dl(url, local)
+        #downl.download(url, local)
         # update to db.
         updatevinfo(local, title)
-        print(local, 'done.')
+        print(local, 'done.', os.getpid())
+        dlvlist()
+
+def getundownlist():
+    cursor = db.select('SELECT title, v_type, v_url FROM v_list WHERE dl_state = 0 order by rand() limit 0,3')
+    rs = cursor.fetchall()
+    return rs
 
 def dl(url, path):
     req = requests.get(url, headers=headers, stream=True)

@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 import utils
 import db
 import conf
+import multiprocessing
 
 config = conf.getconfig()
 
@@ -134,7 +135,11 @@ def main():
     # step 5
     #ts = utils.getfilemd5('../videos/5.mp4')
     #updatevinfo()
-    utils.dlvlist()
+    for i in range(multiprocessing.cpu_count()):
+        p = multiprocessing.Process(target=utils.dlvlist)
+        p.start()
+    p.join()
+    # utils.dlvlist()
     # finally
     db.closeconn()
 
