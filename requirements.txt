@@ -24,7 +24,7 @@ ipython-genutils==0.2.0
 jedi==0.12.1
 lxml==4.2.4
 moviepy==0.2.3.5
-numpy==1.15.1
+numpy==1.22.0
 parsel==1.5.0
 parso==0.3.1
 pbr==4.2.0
